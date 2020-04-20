@@ -12,6 +12,8 @@ __A faire en équipes de deux personnes__
 
 __Développement à faire en Python 3__
 
+**Étudiants:** Nathanaël Mizutani, Stefan Dejanovic
+
 ### Pour cette partie pratique, vous devez être capable de :
 
 * Extraire à partir d’une capture Wireshark les données nécessaires pour dériver les clés de chiffrement et intégrité WPA utilisant Scapy

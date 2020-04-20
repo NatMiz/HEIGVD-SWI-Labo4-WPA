@@ -16,9 +16,11 @@ __version__ 	= "1.0"
 __email__ 		= "abraham.rubinstein@heig-vd.ch"
 __status__ 		= "Prototype"
 
+# Modified by Nathanaël Mizutani, Stefan Dejanovic
+
 from scapy.all import *
 from binascii import a2b_hex, b2a_hex
-from pbkdf2_math import pbkdf2_hex
+# from pbkdf2_math import pbkdf2_hex
 from pbkdf2 import *
 from numpy import array_split
 from numpy import array
@@ -37,9 +39,10 @@ def customPRF512(key,A,B):
         R = R+hmacsha1.digest()
     return R[:blen]
 
-# Read capture file -- it contains beacon, authentication, associacion, handshake and data
+# Read capture file -- it contains beacon, authentication, association, handshake and data
 wpa=rdpcap("wpa_handshake.cap") 
 
+# TODO obtain parameters from pcap file
 # Important parameters for key derivation - most of them can be obtained from the pcap file
 passPhrase  = "actuelle"
 A           = "Pairwise key expansion" #this string is used in the pseudo-random function
