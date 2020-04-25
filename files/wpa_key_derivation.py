@@ -52,23 +52,24 @@ for p in wpa:
         if(p[Raw].load.hex()[:6] == '02030a'): # We check if this is the last handshake packet
             mic_to_test = p[Raw].load.hex()[154:-4]
 
-    if(p.haslayer(Dot11AssoReq)):
+    if(p.haslayer(Dot11AssoReq)): # We use the association request packet
         ssid = p.info
+        # We transform them to the correct encoding
         APmac = a2b_hex((p[Dot11].addr1).replace(":",""))
         Clientmac = a2b_hex((p[Dot11].addr2).replace(":", ""))
 
-# TODO obtain parameters from pcap file
+
 # Important parameters for key derivation - most of them can be obtained from the pcap file
 passPhrase  = "actuelle"
 A           = "Pairwise key expansion" #this string is used in the pseudo-random function
 
 # Authenticator and Supplicant Nonces
+# We transform them to the correct encoding
 ANonce      = a2b_hex(nonces[0])
 SNonce      = a2b_hex(nonces[1])
 
 # This is the MIC contained in the 4th frame of the 4-way handshake
 # When attacking WPA, we would compare it to our own MIC calculated using passphrases from a dictionary
-#mic_to_test = "36eef66540fa801ceee2fea9b7929b40"
 
 B           = min(APmac,Clientmac)+max(APmac,Clientmac)+min(ANonce,SNonce)+max(ANonce,SNonce) #used in pseudo-random function
 
@@ -85,7 +86,7 @@ print ("Client Nonce: ",SNonce,"\n")
 
 #calculate 4096 rounds to obtain the 256 bit (32 oct) PMK
 passPhrase = str.encode(passPhrase)
-#ssid = str.encode(ssid)
+
 pmk = pbkdf2(hashlib.sha1,passPhrase, ssid, 4096, 32)
 
 #expand pmk to obtain PTK
