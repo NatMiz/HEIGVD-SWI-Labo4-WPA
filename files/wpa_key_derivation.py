@@ -49,11 +49,13 @@ for p in wpa:
     if(p.haslayer(EAPOL)): # We check if the packet is part of the 4-way handshake
         if(p[Raw].load.hex()[25:26] == '0'):  # We want the messages which replay counter is 0
             nonces.append(p[Raw].load.hex()[26:90])
+        if(p[Raw].load.hex()[:6] == '02030a'): # We check if this is the last handshake packet
+            mic_to_test = p[Raw].load.hex()[154:-4]
 
     if(p.haslayer(Dot11AssoReq)):
         ssid = p.info
-        APmac = (p[Dot11].addr1).replace(":","")
-        Clientmac = (p[Dot11].addr2).replace(":", "")
+        APmac = a2b_hex((p[Dot11].addr1).replace(":",""))
+        Clientmac = a2b_hex((p[Dot11].addr2).replace(":", ""))
 
 # TODO obtain parameters from pcap file
 # Important parameters for key derivation - most of them can be obtained from the pcap file
@@ -61,12 +63,12 @@ passPhrase  = "actuelle"
 A           = "Pairwise key expansion" #this string is used in the pseudo-random function
 
 # Authenticator and Supplicant Nonces
-ANonce      = nonces[0]
-SNonce      = nonces[1]
+ANonce      = a2b_hex(nonces[0])
+SNonce      = a2b_hex(nonces[1])
 
 # This is the MIC contained in the 4th frame of the 4-way handshake
 # When attacking WPA, we would compare it to our own MIC calculated using passphrases from a dictionary
-mic_to_test = "36eef66540fa801ceee2fea9b7929b40"
+#mic_to_test = "36eef66540fa801ceee2fea9b7929b40"
 
 B           = min(APmac,Clientmac)+max(APmac,Clientmac)+min(ANonce,SNonce)+max(ANonce,SNonce) #used in pseudo-random function
 
@@ -87,7 +89,7 @@ passPhrase = str.encode(passPhrase)
 pmk = pbkdf2(hashlib.sha1,passPhrase, ssid, 4096, 32)
 
 #expand pmk to obtain PTK
-ptk = customPRF512(pmk,str.encode(A),str.encode(B))
+ptk = customPRF512(pmk,str.encode(A), B)
 
 #calculate MIC over EAPOL payload (Michael)- The ptk is, in fact, KCK|KEK|TK|MICK
 mic = hmac.new(ptk[0:16],data,hashlib.sha1)
