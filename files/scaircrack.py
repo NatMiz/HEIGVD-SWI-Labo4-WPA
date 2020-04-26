@@ -38,10 +38,9 @@ def customPRF512(key,A,B):
     return R[:blen]
 
 # Read the passphrase from the file wordlist
-f= open("wordlist","r")
+passPhrases = open("wordlist","r").read().split("\n")
 
-passPhrase = f.readline()
-while(passPhrase != ""):
+for passPhrase in passPhrases :
     # Read capture file -- it contains beacon, authentication, association, handshake and data
     wpa = rdpcap("wpa_handshake.cap")
 
@@ -90,8 +89,6 @@ while(passPhrase != ""):
     if mic.hexdigest()[:len(mic_to_test)] == mic_to_test:
         print("The passphrase (" + str(passPhrase) + ") is correct")
         exit()
-
-    passPhrase = f.readline()
     
 print("The passphrases are not correct. Try with a different passphrase")
 
