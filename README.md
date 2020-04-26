@@ -43,7 +43,7 @@ Dans cette première partie, vous allez récupérer le script **Python3** [wpa_k
 - Analyser le fonctionnement du script. En particulier, __faire attention__ à la variable ```data``` qui contient la payload de la trame et la comparer aux données de la quatrième trame du 4-way handshake. Lire [la fin de ce document] pour l’explication de la différence.
 - __Modifier le script__ pour qu’il récupère automatiquement, à partir de la capture, les valeurs qui se trouvent actuellement codées en dur (```ssid```, ```APmac```, ```Clientmac```, nonces…) 
 
-**Remarque :** Dans le screenshot, on peut trouver toutes les informations tells que le ssid, APmac, Clientmac etc...
+**Remarque :** Dans le screenshot, on peut trouver toutes les informations tells que le ssid, APmac, Clientmac etc... récupérées directement depuis la capture wireshark.
 
 ![step2](images/wpa_key_derivation-Results.png)
 
@@ -62,7 +62,7 @@ Utilisant le script [wpa_key_derivation.py](https://github.com/arubinst/HEIGVD-S
    - Identiques &rarr; La passphrase utilisée est correcte
    - Différents &rarr; Essayer avec une nouvelle passphrase
 
-**Remarque:** sur ce screenshot on peut remarquer que dans un cas nous avons le bon passphrase et dans l'autre un mauvais.
+**Remarque:** sur ce screenshot on peut remarquer que dans un cas nous avons la bonne passphrase et dans l'autre la mauvaise.
 ![](images/step3.png)
 
 
