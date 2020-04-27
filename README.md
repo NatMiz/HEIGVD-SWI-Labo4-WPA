@@ -43,9 +43,9 @@ Dans cette première partie, vous allez récupérer le script **Python3** [wpa_k
 - Analyser le fonctionnement du script. En particulier, __faire attention__ à la variable ```data``` qui contient la payload de la trame et la comparer aux données de la quatrième trame du 4-way handshake. Lire [la fin de ce document] pour l’explication de la différence.
 - __Modifier le script__ pour qu’il récupère automatiquement, à partir de la capture, les valeurs qui se trouvent actuellement codées en dur (```ssid```, ```APmac```, ```Clientmac```, nonces…) 
 
-**Remarque :** Dans le screenshot, on peut trouver toutes les informations tells que le ssid, APmac, Clientmac etc... récupérées directement depuis la capture wireshark.
+**Remarque :** Dans le screenshot ci dessous, on constate qu'on obtient les mêmes résultats que le script d'origine :
 
-![step2](images/wpa_key_derivation-Results.png)
+![step2](images/step1-verification.png)
 
 ### 2. Scaircrack (aircrack basé sur Scapy)
 
