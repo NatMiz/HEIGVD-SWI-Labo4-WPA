@@ -7,7 +7,7 @@ Derive WPA keys from Passphrase and 4-way handshake info
 Calcule un MIC d'authentification (le MIC pour la transmission de données
 utilise l'algorithme Michael. Dans ce cas-ci, l'authentification, on utilise
 sha-1 pour WPA2 ou MD5 pour WPA). On vérifie également que le mic du fichier cap
-correpond au mic de la passphrase définit
+correspond au mic de la passphrase définit
 """
 
 __author__      = "Stefan Dejanovic et Nathanael Mizutani"
