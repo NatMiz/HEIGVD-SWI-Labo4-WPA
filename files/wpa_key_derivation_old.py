@@ -16,8 +16,6 @@ __version__ 	= "1.0"
 __email__ 		= "abraham.rubinstein@heig-vd.ch"
 __status__ 		= "Prototype"
 
-# Modified by Nathanaël Mizutani, Stefan Dejanovic
-
 from scapy.all import *
 from binascii import a2b_hex, b2a_hex
 # from pbkdf2_math import pbkdf2_hex
