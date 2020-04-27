@@ -42,31 +42,28 @@ def customPRF512(key,A,B):
 
 # Read capture file -- it contains beacon, authentication, association, handshake and data
 wpa = rdpcap("wpa_handshake.cap")
-# Array to store the Authenticator nonce and the Supplicant nonce
-nonces = []
+
+# Array to store the 4-way handshake
+handshake = []
 
 for p in wpa:
     if(p.haslayer(EAPOL)): # We check if the packet is part of the 4-way handshake
-        if(p[Raw].load.hex()[25:26] == '0'):  # We want the messages which replay counter is 0
-            nonces.append(p[Raw].load.hex()[26:90])
-        if(p[Raw].load.hex()[:6] == '02030a'): # We check if this is the last handshake packet
-            mic_to_test = p[Raw].load.hex()[154:-4]
+        handshake.append(p) # We retrieve the complete 4-way handshake
 
-    if(p.haslayer(Dot11AssoReq)): # We use the association request packet
+    # We use the association request packet to retrieve the ssid
+    if(p.haslayer(Dot11AssoReq)): 
         ssid = p.info
-        # We transform them to the correct encoding
-        APmac = a2b_hex((p[Dot11].addr1).replace(":",""))
-        Clientmac = a2b_hex((p[Dot11].addr2).replace(":", ""))
 
+# We retrieve the parameters from the handshake packets
+APmac = a2b_hex((handshake[1][Dot11].addr1).replace(":",""))
+Clientmac = a2b_hex((handshake[0][Dot11].addr1).replace(":",""))
+ANonce = a2b_hex(handshake[0][Raw].load.hex()[26:90])
+SNonce = a2b_hex(handshake[1][Raw].load.hex()[26:90])
+mic_to_test = handshake[3][Raw].load.hex()[154:-4]
 
 # Important parameters for key derivation - most of them can be obtained from the pcap file
 passPhrase  = "actuelle"
 A           = "Pairwise key expansion" #this string is used in the pseudo-random function
-
-# Authenticator and Supplicant Nonces
-# We transform them to the correct encoding
-ANonce      = a2b_hex(nonces[0])
-SNonce      = a2b_hex(nonces[1])
 
 # This is the MIC contained in the 4th frame of the 4-way handshake
 # When attacking WPA, we would compare it to our own MIC calculated using passphrases from a dictionary
@@ -79,10 +76,10 @@ print ("\n\nValues used to derivate keys")
 print ("============================")
 print ("Passphrase: ",passPhrase,"\n")
 print ("SSID: ",ssid,"\n")
-print ("AP Mac: ",APmac,"\n")
-print ("CLient Mac: ",Clientmac,"\n")
-print ("AP Nonce: ",ANonce,"\n")
-print ("Client Nonce: ",SNonce,"\n")
+print ("AP Mac: ",b2a_hex(APmac),"\n")
+print ("CLient Mac: ",b2a_hex(Clientmac),"\n")
+print ("AP Nonce: ",b2a_hex(ANonce),"\n")
+print ("Client Nonce: ",b2a_hex(SNonce),"\n")
 
 #calculate 4096 rounds to obtain the 256 bit (32 oct) PMK
 passPhrase = str.encode(passPhrase)
