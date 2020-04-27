@@ -58,20 +58,17 @@ ANonce = a2b_hex(handshake[0][Raw].load.hex()[26:90])
 SNonce = a2b_hex(handshake[1][Raw].load.hex()[26:90])
 mic_to_test = handshake[3][Raw].load.hex()[154:-4]
 
+A = "Pairwise key expansion" #this string is used in the pseudo-random function
+
+B  = min(APmac,Clientmac)+max(APmac,Clientmac)+min(ANonce,SNonce)+max(ANonce,SNonce) #used in pseudo-random function
+
+#cf "Quelques détails importants" dans la donnée
+data = a2b_hex("0103005f02030a0000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
+
 # Read the passphrase from the file wordlist
 passPhrases = open("wordlist","r").read().split("\n")
 
 for passPhrase in passPhrases :
-
-    # Important parameters for key derivation - most of them can be obtained from the pcap file
-    A           = "Pairwise key expansion" #this string is used in the pseudo-random function
-
-    # This is the MIC contained in the 4th frame of the 4-way handshake
-    # When attacking WPA, we would compare it to our own MIC calculated using passphrases from a dictionary
-
-    B           = min(APmac,Clientmac)+max(APmac,Clientmac)+min(ANonce,SNonce)+max(ANonce,SNonce) #used in pseudo-random function
-
-    data        = a2b_hex("0103005f02030a0000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000") #cf "Quelques détails importants" dans la donnée
 
     # calculate 4096 rounds to obtain the 256 bit (32 oct) PMK
     passPhrase = str.encode(passPhrase)
