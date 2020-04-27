@@ -43,7 +43,7 @@ Dans cette première partie, vous allez récupérer le script **Python3** [wpa_k
 - Analyser le fonctionnement du script. En particulier, __faire attention__ à la variable ```data``` qui contient la payload de la trame et la comparer aux données de la quatrième trame du 4-way handshake. Lire [la fin de ce document] pour l’explication de la différence.
 - __Modifier le script__ pour qu’il récupère automatiquement, à partir de la capture, les valeurs qui se trouvent actuellement codées en dur (```ssid```, ```APmac```, ```Clientmac```, nonces…) 
 
-**Remarque :** Dans le screenshot ci dessous, on constate qu'on obtient les mêmes résultats que le script d'origine :
+**Remarque :** Dans le screenshot ci dessous, on constate que le script modifié (```wpa_key_derivation.py```) permet d'obtenir les mêmes résultats que le script d'origine (```wpa_key_derivation_old.py```) :
 
 ![step2](images/step1-verification.png)
 
@@ -72,7 +72,9 @@ Utilisant le script [wpa_key_derivation.py](https://github.com/arubinst/HEIGVD-S
 
 Modifier votre script de cracking pour qu’il soit capable de faire les mêmes opérations que le script précédant mais sans utiliser une capture Wireshark. Pour cela, il faudra donc sniffer un 4-way handshake utilisant Scapy et refaire toutes les opérations de la partie 2 pour obtenir la passphrase. Le script doit implémenter la possibilité de déauthentifier un client pour stimuler le 4-way handshake. Cette déauthentification doit aussi être implémentée avec Scapy.
 
-**Remarque:** On a essayé d'effectuer le challenge mais nous n'avons pas reussi à le faire fonctionner car les paquets doivent arriver dans le bon ordre et en même temps pour faire fonctionner le script
+**Remarque:** On a essayé d'effectuer le challenge mais nous n'avons pas réussi à le faire fonctionner car les paquets doivent arriver dans le bon ordre et en même temps pour faire fonctionner le script. Nous avons toutefois obtenu le résultat suivant (dans un souci de respect de la vie privée, les paramètres ont été censurés) :
+![](images/step4-result.png)
+Le MIC récupéré est vraisemblablement faux, probablement parce que les paquets du handshake ne sont pas arrivés dans le bon ordre et/ou à la suite.
 
 ## Quelques éléments à considérer :
 
